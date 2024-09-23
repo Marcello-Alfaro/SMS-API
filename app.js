@@ -39,8 +39,6 @@ try {
   (async function signalStrengthUpdater() {
     const signalStrength = await Modem.getSignalStrength();
 
-    logger.info(`Signal strength: ${signalStrength}`);
-
     socket.emit('signal-strength', signalStrength);
 
     setTimeout(signalStrengthUpdater, 5000);
