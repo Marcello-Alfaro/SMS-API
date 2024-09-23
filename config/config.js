@@ -1,0 +1,10 @@
+export const {
+  API_URL,
+  API_PATH,
+  SOCKET_NAMESPACE,
+  JWT_SECRET,
+  SERIAL_PORT,
+  LOGS_DESTINATION = '',
+  SENDGRID_API_KEY,
+  FROM_EMAIL,
+} = process.env;

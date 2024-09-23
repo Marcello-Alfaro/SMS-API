@@ -1,0 +1,24 @@
+{
+  "name": "sms-local-api",
+  "version": "1.0.0",
+  "main": "app.js",
+  "type": "module",
+  "scripts": {
+    "start:dev": "nodemon -r dotenv/config app.js "
+  },
+  "author": "Marcello Alfaro",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "dotenv": "^16.4.5",
+    "nodemon": "^3.1.7"
+  },
+  "dependencies": {
+    "@sendgrid/mail": "^8.1.3",
+    "jsonwebtoken": "^9.0.2",
+    "pino": "^9.4.0",
+    "pino-pretty": "^11.2.2",
+    "serialport-gsm": "^4.0.1",
+    "socket.io-client": "^4.8.0"
+  }
+}
