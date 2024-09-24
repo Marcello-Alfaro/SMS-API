@@ -7,4 +7,5 @@ export const {
   LOGS_DESTINATION = '',
   SENDGRID_API_KEY,
   FROM_EMAIL,
+  TO_EMAIL,
 } = process.env;

@@ -5,6 +5,7 @@ import {
   JWT_SECRET,
   SENDGRID_API_KEY,
   FROM_EMAIL,
+  TO_EMAIL,
 } from './config/config.js';
 import logger from './helpers/logger.js';
 import io from 'socket.io-client';
@@ -14,8 +15,6 @@ import Modem from './helpers/modem.js';
 
 try {
   logger.info(`SMS service started! - Running Node.js version ${process.version}`);
-
-  const receivers = ['marcello.alfaro1@gmail.com'];
 
   sgMail.setApiKey(SENDGRID_API_KEY);
 
@@ -46,12 +45,12 @@ try {
 
   socket.on('send-message', async ({ number, message, flash }, res) => {
     try {
-      const result = await Modem.sendSMS(number.replace(/\s+/g, ''), message, flash);
+      const response = await Modem.sendSMS(number.replace(/\s+/g, ''), message, flash);
 
-      res({ ok: true, message: result.data.response });
+      res({ ok: true, message: response });
     } catch (err) {
       logger.error(err);
-      res({ ok: false, message: err.data.response });
+      res({ ok: false, message: err.message });
     }
   });
 
@@ -60,28 +59,20 @@ try {
       const { sender, message: msg } = message;
       socket.emit('new-message', message);
 
-      await Promise.all(
-        receivers.map(async (to) =>
-          sgMail.send({
-            to,
-            from: FROM_EMAIL,
-            subject: `You have a new message from message ${sender ?? 'Unknown'}`,
-            html: msg,
-          })
-        )
-      );
+      await sgMail.send({
+        from: FROM_EMAIL,
+        to: TO_EMAIL,
+        subject: `You have a new message from message ${sender ?? 'Unknown'}`,
+        html: msg,
+      });
     } catch (err) {
       logger.error(err);
     }
   });
 
-  Modem.getInstance().on('onNewIncomingCall', async function ({ data: { number } }) {
+  Modem.getInstance().on('onNewIncomingCall', function () {
     try {
       this.hangupCall();
-      await Modem.sendSMS(
-        number,
-        `Hola, lo siento, no puedo contestar debido a que no me encuentro en el país. Por favor déjame un mensaje SMS o WhatsApp con el motivo de tu llamada.`
-      );
     } catch (err) {
       logger.error(err);
     }
@@ -91,23 +82,3 @@ try {
 } catch (err) {
   logger.error(err);
 }
-
-/* 
-
-[
-  {
-    sender: 'CLARO',
-    message: 'Apreciado Cliente le informamos que el registro del IMEI 866192034280196 fue Exitoso',
-    index: 4,
-    msgStatus: 4,
-    dateTimeSent: 2024-09-02T18:23:58.000Z,
-    header: {
-      encoding: '7bit',
-      smsc: '573103804459',
-      smscType: 'INTERNATIONAL',
-      smscPlan: 'ISDN'
-    }
-  }
-]
-
-*/
