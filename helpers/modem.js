@@ -85,9 +85,9 @@ export default class Modem {
       return new Promise((res, rej) =>
         this.#modem.sendSMS(number, message, flash, (result) => {
           execCount++;
-          if (execCount === 2 && result.status === 'success') return res(result.data.response);
-          if (execCount === 2 && result.status === 'fail')
-            throw rej(new ErrorObject(result.data.response));
+          if (execCount !== 2) return;
+          if (result.status === 'success') return res(result.data.response);
+          if (result.status === 'fail') return rej(new ErrorObject(result.data.response));
         })
       );
     } catch (err) {
