@@ -26,7 +26,7 @@ export default class Modem {
   static #isInitialized = false;
   static #number = '+573116029691';
 
-  static async init() {
+  static init() {
     try {
       return new Promise((res, rej) => {
         this.#modem.open(SERIAL_PORT, this.#options);
@@ -35,11 +35,10 @@ export default class Modem {
           // Initialize modem
           this.#modem.initializeModem((data) => {
             if (!data) return rej(new ErrorObject('Failed to initialized the modem.'));
-            logger.info('Modem initialized!');
 
             this.#isInitialized = true;
             this.#modem.executeCommand('AT+CMEE=2');
-            res();
+            res(logger.info('Modem initialized!'));
           });
         });
       });
@@ -63,12 +62,12 @@ export default class Modem {
     return this.#number;
   }
 
-  static async getSignalStrength() {
+  static getSignalStrength() {
     try {
       if (!this.#isInitialized)
         throw new ErrorObject('Failed to get signal strength, modem is not initialized.');
 
-      return await new Promise((res) =>
+      return new Promise((res) =>
         this.#modem.executeCommand('AT+CSQ', ({ data: { result } }) => res(result.trim()))
       );
     } catch (err) {
