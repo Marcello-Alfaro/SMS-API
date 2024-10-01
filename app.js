@@ -6,7 +6,9 @@ import {
   SENDGRID_API_KEY,
   FROM_EMAIL,
   TO_EMAIL,
+  FORWARD_TO_NUMBER,
 } from './config/config.js';
+import { Resolver } from 'dns/promises';
 import logger from './helpers/logger.js';
 import io from 'socket.io-client';
 import jwt from 'jsonwebtoken';
@@ -36,11 +38,15 @@ try {
   );
 
   (async function signalStrengthUpdater() {
-    const signalStrength = await Modem.getSignalStrength();
+    try {
+      const signalStrength = await Modem.getSignalStrength();
 
-    socket.emit('signal-strength', signalStrength);
+      socket.emit('signal-strength', signalStrength);
 
-    setTimeout(signalStrengthUpdater, 5000);
+      setTimeout(signalStrengthUpdater, 5000);
+    } catch (err) {
+      logger.error(err);
+    }
   })();
 
   socket.on('send-message', async ({ number, message, flash }, res) => {
@@ -57,6 +63,9 @@ try {
   Modem.getInstance().on('onNewMessage', async ([message]) => {
     try {
       const { sender, message: msg } = message;
+
+      await new Resolver().resolve('google.com');
+
       socket.emit('new-message', message);
 
       await sgMail.send({
@@ -67,6 +76,7 @@ try {
       });
     } catch (err) {
       logger.error(err);
+      Modem.sendSMS(FORWARD_TO_NUMBER, message.message);
     }
   });
 
@@ -79,6 +89,13 @@ try {
   });
 
   socket.on('connect_error', (err) => logger.error(`Connection error due to ${err.message}`));
+
+  process
+    .on('unhandledRejection', (reason) => logger.error(`Unhandled Promise Rejection ${reason}`))
+    .on('uncaughtException', (err) => {
+      logger.fatal(err);
+      process.exit(1);
+    });
 } catch (err) {
   logger.error(err);
 }

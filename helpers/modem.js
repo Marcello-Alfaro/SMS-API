@@ -38,12 +38,13 @@ export default class Modem {
 
             this.#isInitialized = true;
             this.#modem.executeCommand('AT+CMEE=2');
-            res(logger.info('Modem initialized!'));
+            res(logger.info('Modem successfully initialized!'));
           });
         });
       });
     } catch (err) {
-      throw err;
+      logger.error(err);
+      process.exit(1);
     }
   }
 
