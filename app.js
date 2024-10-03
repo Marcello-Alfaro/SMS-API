@@ -71,7 +71,7 @@ try {
       await sgMail.send({
         from: FROM_EMAIL,
         to: TO_EMAIL,
-        subject: `You have a new message from message ${sender ?? 'Unknown'}`,
+        subject: `You have a new message from ${sender ?? 'Unknown'}`,
         html: msg,
       });
     } catch (err) {
