@@ -82,7 +82,9 @@ export default class Modem {
   static async sendSMS(number, message, flash = false) {
     try {
       if ((await this.getSignalStrength()) === '0,0')
-        throw new ErrorObject('Cannot attempt to send SMS as the signal is too weak or absent.');
+        throw new ErrorObject(
+          'Cannot attempt to send SMS as the signal is too weak or absent; try again later.'
+        );
 
       let execCount = 0;
       return new Promise((res, rej) =>

@@ -8,5 +8,5 @@ export const {
   SENDGRID_API_KEY,
   FROM_EMAIL,
   TO_EMAIL,
-  FORWARD_TO_NUMBER,
+  FORWARD_NUMBER,
 } = process.env;

@@ -6,7 +6,7 @@ import {
   SENDGRID_API_KEY,
   FROM_EMAIL,
   TO_EMAIL,
-  FORWARD_TO_NUMBER,
+  FORWARD_NUMBER,
 } from './config/config.js';
 import { Resolver } from 'dns/promises';
 import logger from './helpers/logger.js';
@@ -76,7 +76,7 @@ try {
       });
     } catch (err) {
       logger.error(err);
-      Modem.sendSMS(FORWARD_TO_NUMBER, message.message);
+      Modem.sendSMS(FORWARD_NUMBER, message.message);
     }
   });
 
