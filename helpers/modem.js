@@ -24,7 +24,6 @@ export default class Modem {
     logger: console,
   };
   static #isInitialized = false;
-  static #number = '+573116029691';
 
   static async init() {
     try {
@@ -41,6 +40,9 @@ export default class Modem {
 
             this.#isInitialized = true;
             this.#modem.executeCommand('AT+CMEE=2');
+
+            this.emptySimInbox();
+
             res(logger.info(data));
           });
         });
@@ -62,10 +64,6 @@ export default class Modem {
     }
   }
 
-  static getNumber() {
-    return this.#number;
-  }
-
   static getSignalStrength() {
     try {
       if (!this.#isInitialized)
@@ -77,6 +75,20 @@ export default class Modem {
     } catch (err) {
       throw err;
     }
+  }
+
+  static emptySimInbox() {
+    this.#modem.getSimInbox(async ({ data }) => {
+      try {
+        if (data.length === 0) return;
+        this.#modem.deleteAllSimMessages((result) => logger.info(result));
+
+        await new Promise((res) => setTimeout(res, 3600000));
+        this.emptySimInbox();
+      } catch (err) {
+        logger.error(err);
+      }
+    });
   }
 
   static async sendSMS(number, message, flash = false) {

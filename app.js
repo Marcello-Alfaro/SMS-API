@@ -1,72 +1,40 @@
+import express from 'express';
+import cors from 'cors';
+import smsRoutes from './routes/sms.js';
 import {
+  PORT,
   API_PATH,
-  API_URL,
-  SOCKET_NAMESPACE,
-  JWT_SECRET,
-  SENDGRID_API_KEY,
+  ORIGIN_URL,
   FROM_EMAIL,
   TO_EMAIL,
-  FORWARD_NUMBER,
+  SENDGRID_API_KEY,
 } from './config/config.js';
 import { Resolver } from 'dns/promises';
+import errHandler from './middlewares/errHandler.js';
 import logger from './helpers/logger.js';
-import io from 'socket.io-client';
-import jwt from 'jsonwebtoken';
 import sgMail from '@sendgrid/mail';
+import Socket from './socket.js';
 import Modem from './helpers/modem.js';
 
 try {
-  logger.info(`SMS service started! - Running Node.js version ${process.version}`);
-
   sgMail.setApiKey(SENDGRID_API_KEY);
 
+  const app = express();
+  app.use(express.json());
+  app.use(cors({ origin: ORIGIN_URL, methods: ['GET', 'POST'] }));
+  app.use(API_PATH, smsRoutes);
+  app.use(errHandler);
+
+  const server = app.listen(PORT, () => logger.info(`SMS-API started on port ${PORT}`));
+
   await Modem.init();
-
-  const socket = new io(API_URL + SOCKET_NAMESPACE, {
-    path: `${API_PATH}.io/`,
-    auth: {
-      token: jwt.sign(Modem.getNumber(), JWT_SECRET),
-    },
-  });
-
-  logger.info('Establishing connection with main server...');
-
-  socket.on('connect', () => logger.info('Connection with main server established!'));
-
-  socket.on('disconnect', (reason) =>
-    logger.warn(`Connection with main server lost due to ${reason}`)
-  );
-
-  (async function signalStrengthUpdater() {
-    try {
-      const signalStrength = await Modem.getSignalStrength();
-
-      socket.emit('signal-strength', signalStrength);
-
-      setTimeout(signalStrengthUpdater, 5000);
-    } catch (err) {
-      logger.error(err);
-    }
-  })();
-
-  socket.on('send-message', async ({ number, message, flash }, res) => {
-    try {
-      const response = await Modem.sendSMS(number.replace(/\s+/g, ''), message, flash);
-
-      res({ ok: true, message: response });
-    } catch (err) {
-      logger.error(err);
-      res({ ok: false, message: err.message });
-    }
-  });
+  Socket.init(server);
 
   Modem.getInstance().on('onNewMessage', async ([message]) => {
     try {
       const { sender, message: msg } = message;
 
       await new Resolver().resolve('google.com');
-
-      socket.emit('new-message', message);
 
       await sgMail.send({
         from: FROM_EMAIL,
@@ -76,7 +44,7 @@ try {
       });
     } catch (err) {
       logger.error(err);
-      Modem.sendSMS(FORWARD_NUMBER, message.message);
+      await Modem.sendSMS(FORWARD_NUMBER, message.message);
     }
   });
 
@@ -87,15 +55,6 @@ try {
       logger.error(err);
     }
   });
-
-  socket.on('connect_error', (err) => logger.error(`Connection error due to ${err.message}`));
-
-  process
-    .on('unhandledRejection', (reason) => logger.error(`Unhandled Promise Rejection ${reason}`))
-    .on('uncaughtException', (err) => {
-      logger.fatal(err);
-      process.exit(1);
-    });
 } catch (err) {
   logger.error(err);
 }
