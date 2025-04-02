@@ -1,4 +1,5 @@
 export const {
+  NODE_ENV,
   PORT,
   API_PATH,
   ORIGIN_URL,

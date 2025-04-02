@@ -15,12 +15,14 @@ import logger from './helpers/logger.js';
 import sgMail from '@sendgrid/mail';
 import Socket from './socket.js';
 import Modem from './helpers/modem.js';
+import helmet from 'helmet';
 
 try {
   sgMail.setApiKey(SENDGRID_API_KEY);
 
   const app = express();
   app.use(express.json());
+  app.use(helmet());
   app.use(cors({ origin: ORIGIN_URL, methods: ['GET', 'POST'] }));
   app.use(API_PATH, smsRoutes);
   app.use(errHandler);
