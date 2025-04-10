@@ -95,7 +95,8 @@ export default class Modem {
     try {
       if ((await this.getSignalStrength()) === '0,0')
         throw new ErrorObject(
-          'Cannot attempt to send SMS as the signal is too weak or absent; try again later.'
+          'Cannot attempt to send SMS as the signal is too weak or absent; try again later.',
+          503
         );
 
       let execCount = 0;
