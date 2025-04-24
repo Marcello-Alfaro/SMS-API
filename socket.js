@@ -25,23 +25,20 @@ export default class Socket {
               setTimeout(() => (!this.isAlive ? this.terminate() : this.keepAlive()), 15000);
             };
 
+            ws.signalStrengthUpdater = async function () {
+              if (ws.readyState !== ws.OPEN) return;
+
+              const signalStrength = await Modem.getSignalStrength();
+
+              ws.send(JSON.stringify({ action: 'sim-signal-quality', signalStrength }));
+
+              await new Promise((res) => setTimeout(res, 5000));
+              this.signalStrengthUpdater();
+            };
+
             ws.keepAlive();
 
             ws.on('pong', () => (ws.isAlive = true));
-
-            logger.info(`WebSocket connection with client ${ip} established.`);
-
-            (async function signalStrengthUpdater() {
-              try {
-                const signalStrength = await Modem.getSignalStrength();
-
-                ws.send(JSON.stringify({ action: 'sim-signal-quality', signalStrength }));
-
-                setTimeout(signalStrengthUpdater, 5000);
-              } catch (err) {
-                logger.error(err);
-              }
-            })();
 
             ws.on('message', async (message) => {
               const data = this.#decodeJSON(message);
@@ -68,6 +65,10 @@ export default class Socket {
               logger.error(`WebSocket connection with client ${ip} encounter an error ${err}.`);
               ws.terminate();
             });
+
+            logger.info(`WebSocket connection with client ${ip} established.`);
+
+            await ws.signalStrengthUpdater();
           });
         } else {
           socket.destroy();

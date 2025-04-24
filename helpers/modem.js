@@ -40,6 +40,7 @@ export default class Modem {
 
             this.#isInitialized = true;
             this.#modem.executeCommand('AT+CMEE=2');
+            this.#modem.executeCommand('AT+CSCS="GSM"');
 
             this.emptySimInbox();
 

@@ -8,6 +8,7 @@ import {
   FROM_EMAIL,
   TO_EMAIL,
   SENDGRID_API_KEY,
+  FORWARD_NUMBER,
 } from './config/config.js';
 import { Resolver } from 'dns/promises';
 import errHandler from './middlewares/errHandler.js';
@@ -46,6 +47,15 @@ try {
       });
     } catch (err) {
       logger.error(err);
+      const maxLength = 140;
+      if (message.message.length > maxLength) {
+        const parts = [];
+        for (let i = 0; i < message.message.length; i += maxLength) {
+          parts.push(message.message.slice(i, i + maxLength));
+        }
+
+        await Promise.all(parts.map(async (part) => await Modem.sendSMS(FORWARD_NUMBER, part)));
+      }
       await Modem.sendSMS(FORWARD_NUMBER, message.message);
     }
   });
