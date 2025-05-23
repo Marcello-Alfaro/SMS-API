@@ -1,0 +1,4 @@
+node_modules
+.env
+AT Command.txt
+ecosystem.config.cjs

@@ -1,0 +1,22 @@
+{
+  "name": "sms-api",
+  "version": "1.0.0",
+  "main": "app.js",
+  "type": "module",
+  "scripts": {
+    "start:dev": "node --watch --env-file=.env app.js"
+  },
+  "author": "Marcello Alfaro",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@sendgrid/mail": "^8.1.5",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "helmet": "^8.1.0",
+    "pino": "^9.6.0",
+    "pino-pretty": "^13.0.0",
+    "serialport-gsm": "^4.0.1",
+    "ws": "^8.18.1"
+  }
+}

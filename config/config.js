@@ -1,0 +1,12 @@
+export const {
+  NODE_ENV,
+  PORT,
+  API_PATH,
+  ORIGIN_URL,
+  LOGS_DESTINATION,
+  SERIAL_PORT,
+  SENDGRID_API_KEY,
+  FROM_EMAIL,
+  TO_EMAIL,
+  FORWARD_NUMBER,
+} = process.env;
